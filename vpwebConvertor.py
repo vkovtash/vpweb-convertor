@@ -3,12 +3,16 @@
 
 __author__ = 'kovtash'
 
-SOURCE_DIR = '/Users/kovtash/vpweb/complete'
-ENCODED_DIR = '/Users/kovtash/vpweb/encoded'
-TAGGED_DIR = '/Users/kovtash/vpweb/tagged'
+import ffmpegConvertor,glob,os,sys,AtomicParsley
 
-import ffmpegConvertor,glob,os,AtomicParsley
-
+if sys.platform == 'darwin':
+    SOURCE_DIR =  '/Users/kovtash/vpweb/complete'
+    ENCODED_DIR = '/Users/kovtash/vpweb/encoded'
+    TAGGED_DIR =  '/Users/kovtash/vpweb/tagged'
+elif sys.platform == 'linux2':
+    SOURCE_DIR =  '/hd0/ds0/Library/vpweb/complete'
+    ENCODED_DIR = '/hd0/ds0/Library/vpweb/encoded'
+    TAGGED_DIR =  '/hd0/ds0/iTunes Media/Automatically Add to iTunes.localized'
 
 class vpwebConvertor():
     def __init__(self,sourceDir,encodedDir,taggedDir):
@@ -59,5 +63,17 @@ class vpwebConvertor():
 
 
 if __name__ == "__main__":
+
+    try:
+        import socket
+        s = socket.socket()
+        host = socket.gethostname()
+        port = 35637    #make sure this port is not used on this system
+        s.bind((host, port))
+    except:
+        #pass
+        print "Already running. Exiting."
+        sys.exit(0)
+
     test = vpwebConvertor(SOURCE_DIR,ENCODED_DIR,TAGGED_DIR)
     test.process()
