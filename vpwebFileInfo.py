@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 __author__ = 'kovtash'
 
 POSTER_DIR = '/Users/kovtash/vpweb/poster'

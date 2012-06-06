@@ -1,8 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 __author__ = 'kovtash'
 
-import subprocess,os,re
+import subprocess,os,re,json,sys
 
-FFMPEG=os.path.realpath("./bin/ffmpeg")
+
+
+if sys.platform == 'darwin':
+    FFMPEG=os.path.realpath("./bin/ffmpeg")
+    FFPROBE=os.path.realpath("./bin/ffprobe")
+elif sys.platform == 'linux2':
+    FFMPEG=os.path.realpath("/usr/local/bin/ffmpeg")
+    FFPROBE=os.path.realpath("/usr/local/bin/ffprobe")
 
 class MediaStream():
     def __init__(self):
@@ -39,35 +49,31 @@ class MediaInfo():
 
 
     def getInfoFromFile(self,sourceFile):
-        cmd = [FFMPEG,"-i",sourceFile]
+        cmd = [FFPROBE,"-v","quiet","-print_format","json","-show_format","-show_streams",sourceFile]
 
         p=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,stdin=subprocess.PIPE)
         std=p.communicate()
 
-        processSTDOUT=std[1]
-        print processSTDOUT
+        processSTDOUT=std[0]
 
+        print std
+        streamInfo=json.loads(processSTDOUT)
+        print(streamInfo)
 
-        streamInfo=self._streamInfoPattern.findall(processSTDOUT)
-        print streamInfo
+        for stream in streamInfo['streams']:
 
-        for stream in streamInfo:
-            streamData=stream[2].split(',')
-
-            if stream[1] == 'Video':
+            if stream['codec_type'] == 'video':
                 currentStream = VideoStream()
-                currentStream.id=stream[0]
-                currentStream.codec=streamData[0].strip(' ')
-
-                videoSizes=self._videoSizePattern.search(streamData[2]).group(0).strip(' ').split('x')
-                currentStream.width=videoSizes[0]
-                currentStream.height=videoSizes[1]
+                currentStream.id=stream['index']
+                currentStream.codec=stream['codec_name']
+                currentStream.width=stream['width']
+                currentStream.height=stream['height']
                 self.videoStreams.append(currentStream)
 
-            elif stream[1] == 'Audio':
+            elif stream['codec_type'] == 'audio':
                 currentStream = MediaStream()
-                currentStream.id=stream[0]
-                currentStream.codec=streamData[0].strip(' ')
+                currentStream.id=stream['index']
+                currentStream.codec=stream['codec_name']
                 self.audioStreams.append(currentStream)
 
 
@@ -100,10 +106,14 @@ def videoConvert(source,preset,destination=None,fast=True):
         for stream in sourceInfo.videoStreams:
             if preset.video.codec != stream.codec:
                 currentPreset.video.codec = preset.video.codec
+                if sys.platform == 'linux2':
+                    currentPreset.video.codec = preset.video.codec.replace('h264','libx264')
 
         for stream in sourceInfo.audioStreams:
             if preset.audio.codec != stream.codec:
                 currentPreset.audio.codec = preset.audio.codec
+                if sys.platform == 'linux2':
+                    currentPreset.audio.codec = preset.audio.codec.replace('aac','libfaac')
 
     else:
         currentPreset=preset
@@ -117,4 +127,6 @@ def videoConvert(source,preset,destination=None,fast=True):
     return result
 
 if __name__=='__main__':
+    test=MediaInfo()
+    test.getInfoFromFile("/hd0/ds0/Movies Unencoded/Besslavnye_ublyudki.avi")
     pass
