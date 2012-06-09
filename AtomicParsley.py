@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 __author__ = 'kovtash'
 
 
-import subprocess,os,vpwebFileInfo
+import subprocess, os, vpwebFileInfo, sys
 
-ATOMIC_PARSLEY=os.path.realpath("./bin/AtomicParsley")
+if sys.platform == 'darwin':
+    ATOMIC_PARSLEY = os.path.realpath("./bin/AtomicParsley")
+elif sys.platform == 'linux2':
+    ATOMIC_PARSLEY = os.path.realpath("/usr/bin/AtomicParsley")
 
 class AtomicParsley(vpwebFileInfo.vpwebFileInfo):
     def __init__(self,filePath):
@@ -37,8 +37,8 @@ class AtomicParsley(vpwebFileInfo.vpwebFileInfo):
             if self.episode is not None:
                 cmd.extend(["--TVEpisode",self.episode,"--TVEpisodeNum",self.episode])
 
-        #print cmd
-        p=subprocess.Popen(cmd,stdout=subprocess.PIPE,stdin=subprocess.PIPE)
+        print cmd
+        p=subprocess.Popen(cmd,stdin=subprocess.PIPE)
         resultcode=p.wait()
         result = not resultcode
         return result
